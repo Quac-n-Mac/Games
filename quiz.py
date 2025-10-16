@@ -33,7 +33,20 @@ answer4 = Rect(330,420,310,160)
 answers = [answer1,answer2,answer3,answer4]
 skipbox = Rect(675,250,200,330)
 timebox = Rect(675,55,200,180)
+score = 0
+timer = 10
+messege = ""
+game_over = False
 
+
+def countdown():
+    global timer
+    if timer > 0:
+        timer = timer - 1
+    else:
+        gameover()
+        
+clock.schedule_interval(countdown,1)
 
 
 def draw():
@@ -45,6 +58,8 @@ def draw():
     screen.draw.filled_rect(answer4,"goldenrod")
     screen.draw.filled_rect(skipbox,"blue")
     screen.draw.filled_rect(timebox,"lightgray")
+    screen.draw.textbox(str(timer), timebox, color="magenta")
+    screen.draw.textbox("On question " + str(questindex) +" out of 15", marqueebox, color="magenta")
     screen.draw.textbox(current[0].strip(), questionbox, color="magenta")
     screen.draw.textbox(current[1].strip(), answer1, color="magenta")
     screen.draw.textbox(current[2].strip(), answer2, color="magenta")
@@ -52,27 +67,45 @@ def draw():
     screen.draw.textbox(current[4].strip(), answer4, color="magenta")
     screen.draw.textbox("Skip", skipbox, color="lightgray", angle=-90)
 def update():
-    pass
+    scroll()
 
 def correct():
-    global current, questions
+    global current, questions, timer
     if questions:
         current = readq()
+        timer = 10
+
+def gameover():
+    global messege, score, current, game_over, timer
+    game_over = True
+    timer = 0
+    messege = "Game Over!\nYour score was "+ str(score) + " out of 15"
+    current = [messege, "-", "-", "-", "-", 8]
 
 def skip():
-    global current
-    if questions:
+    global current, game_over, timer
+    if questions and game_over==False:
         current = readq()
+        timer = 10
+    else:
+        gameover()
 
+def scroll():
+    marqueebox.x = marqueebox.x - 2.75
+    if marqueebox.right < 85:
+        marqueebox.left = 740
 
 def on_mouse_down(pos):
-    global answers
+    global answers, score
     index = 1
     for box in answers:
         if box.collidepoint(pos):
             if index == int(current[5]):
                 correct()
                 print("correct")
+                score = score + 1
+            else:
+                gameover()
         index = index + 1
     if skipbox.collidepoint(pos):
         skip()
